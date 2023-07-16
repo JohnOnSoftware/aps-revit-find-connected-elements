@@ -1,0 +1,38 @@
+{
+    "name": "aps-revit-file-parameters-exchange",
+    "description": "A sample showing how to export & import Revit parameters to Excel by Design Automation Revit service",
+    "repository": "https://github.com/autodesk-platform-services/aps-revit-file-parameters-exchange",
+    "logo": "https://avatars0.githubusercontent.com/u/8017462?v=3&s=200",
+    "keywords": [
+        "autodesk",
+        "aps",
+        "design automation"        
+    ],
+    "env": {
+        "APS_CLIENT_ID": {
+            "description": "APS Client ID"
+        },
+        "APS_CLIENT_SECRET": {
+            "description": "APS Client Secret"
+        },
+        "APS_CALLBACK_URL": {
+            "description": "Callback URL of your APS app, required for 3-legged OAuth",
+            "value": "https://<<YOUR HEROKU APP NAME HERE>>.herokuapp.com/api/aps/callback/oauth"
+        },
+        "APS_WEBHOOK_URL": {
+            "description": "Callback URL of your webhook",
+            "value": "http://<<YOUR HEROKU APP NAME HERE>>.herokuapp.com/api/aps/callback/designautomation"
+        },
+        "DESIGN_AUTOMATION_NICKNAME": {
+            "description": "Revit Design Automation NickName, APS_CLIENT_ID by default",
+            "value": "<<YOUR APS_CLIENT_ID HERE>>"
+        },
+        "DESIGN_AUTOMATION_ACTIVITY_NAME": {
+            "description": "Revit Design Automation Activity Name",
+            "value": "ExportImportExcelActivity"
+
+        }
+    },
+    "website": "https://developer.autodesk.com/",
+    "success_url": "/"
+}
