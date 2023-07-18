@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ApplicationPackage>
+  <Components Description="Export MEP System Graphs">
+    <RuntimeRequirements OS="Win64"
+                         Platform="Revit"
+                         SeriesMin="R2021"
+                         SeriesMax="R2024" />
+    <ComponentEntry AppName="ExportMEPSystemGraphsApp"
+                    Version="1.0.0"
+                    ModuleName="./Contents/ExportMEPSystemGraphs.addin"
+                    AppDescription="Export and Import parameters"
+                    LoadOnCommandInvocation="False"
+                    LoadOnRevitStartup="True" />
+  </Components>
+</ApplicationPackage>

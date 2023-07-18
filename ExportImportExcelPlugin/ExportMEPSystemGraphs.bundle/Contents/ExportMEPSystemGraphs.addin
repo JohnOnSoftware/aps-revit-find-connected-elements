@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="DBApplication">
+    <Name>ExportMEPSystemGraphs</Name>
+    <Assembly>.\ExportMEPSystemGraphs.dll</Assembly>
+    <AddInId>C0C50A98-053F-44B3-9D00-7149C86A16C7</AddInId>
+    <FullClassName>ExportMEPSystemGraphs.MEPSystemHandler</FullClassName>
+    <Description>"Traversing and Exporting all MEP System Graphs."</Description>
+    <VendorId>Autodesk</VendorId>
+    <VendorDescription>Autodesk</VendorDescription>
+  </AddIn>
+</RevitAddIns>
