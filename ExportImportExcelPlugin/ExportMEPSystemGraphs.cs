@@ -177,7 +177,8 @@ namespace ExportMEPSystemGraphs
                 }
             }
 
-            string outputFolder = Directory.GetCurrentDirectory();
+            string outputFolder = Path.Combine(Directory.GetCurrentDirectory(), "exportedFiles");
+            Directory.CreateDirectory(outputFolder);
 
             int nXmlFiles = 0;
             int nJsonGraphs = 0;
