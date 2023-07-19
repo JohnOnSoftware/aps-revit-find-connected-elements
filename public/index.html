@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Excel Export & Import</title>
+  <title>Export MEP System Graphs</title>
   <meta charset="utf-8" />
   <!-- Common packages: jQuery, Bootstrap, jsTree -->
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -24,7 +24,6 @@
   <script src="/js/DAConfigure.js"></script>
   <script src="/js/APSTree.js"></script>
   <script src="/js/APSViewer.js"></script>
-  <script src="/js/ViewerExtension.js"></script>
 </head>
 
 <body>
@@ -83,7 +82,7 @@
       <div class="col-sm-3 fill">
           <br/>
         <div>
-          <label><h4>Select Revit Model (Non Cloud Model)</h4> </label>
+          <label><h4>Select Revit MEP Model</h4> </label>
         </div>
         <div class="panel panel-default fill">
           <div class="panel-heading" data-toggle="tooltip" style="padding: 0px;">
@@ -115,7 +114,7 @@
       <div class="col-sm-3 fill">
         <div class="row">
             <div style="padding-top: 10px; text-align: center;">
-                <h2><b>Revit Excel Export & Import</b></h2>
+                <h2><b>Export Settings</b></h2>
             </div>
           </div>
         <div class="row ">
@@ -125,49 +124,30 @@
                   <div style="padding-top: 10px; text-align: left;">
                       <div class="col-lg-12">
                           <div style="text-align: left;">
-                              <label>Select parameters:</label>
+                              <label>Export MEP System Graphs:</label>
                         </div>
                         <div class="input-group">
                           <span class="input-group-addon">
-                              <input type="checkbox" id='includeFireRating' checked=true>
+                              <input type="checkbox" id='useUniqueId' checked=true>
                           </span>
-                          <label class="form-control">Door Type Fire Rating </label>
+                          <label class="form-control">Use Unique Id </label>
                       </div><!-- /input-group -->
                       <div class="input-group">
                         <span class="input-group-addon">
-                            <input type="checkbox" id='includeComments' checked=true>
+                            <input type="checkbox" id='jsonGraphTopDown' checked=true>
                         </span>
-                        <label class="form-control"> Door Instance Comments </label>
+                        <label class="form-control">Json Graph TopDown</label>
                     </div><!-- /input-group -->
-                      </div>
+                    <div class="input-group">
+                      <span class="input-group-addon">
+                          <input type="checkbox" id='entireJsonGraphOnProjectInfo' checked=true>
+                      </span>
+                      <label class="form-control">Entire Json Graph On Project Info</label>
+                  </div><!-- /input-group -->
+                    </div>
                   </div>
               </div>
             <br>
-                <div class="row">
-                    <div style="padding-top: 10px; text-align: left;">
-                        <div class="col-lg-12">
-                            <div style="text-align: left;">
-                                <label>Export or Import:</label>
-                          </div>
-                            <div class="input-group">
-                                <span class="input-group-addon">
-                                    <input type="radio" name='exportOrImport' value='export' checked>
-                                </span>
-                                <label class="form-control">Export parameters To Excel</label>
-                            </div><!-- /input-group -->
-                            <div class="input-group">
-                                <span class="input-group-addon">
-                                    <input type="radio" name='exportOrImport' value='import'>
-                                </span>
-                                <label class="form-control">Import parameters from Excel</label>
-                            </div><!-- /input-group -->                          
-                            <div class="form-group" id="importSharedParameters" hidden>
-                                <label for="inputFile">Input Spreadsheet file( Please export first to check the Excel format )</label>
-                                <input type="file" class="form-control-file" id="inputFile">
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </form>
             <!-- </div> -->
 
@@ -177,7 +157,7 @@
                 <div style="padding-top: 10px;">
 
                   <button class="btn btn-primary" id="startWorkitem">
-                    <span class="glyphicon glyphicon-play"></span>Execute
+                    <span class="glyphicon glyphicon-play"></span>Export
                   </button>
                   <button class="btn btn-primary" id="cancelBtn" disabled>
                     <span class="glyphicon glyphicon-stop"></span>Cancel
@@ -233,10 +213,7 @@
                     names. Activities will have the following parameters: <br> 
                     &nbsp&nbsp&nbsp&nbsp<b>inputFile:</b> Revit input file,  required for both Export and Import <br> 
                     &nbsp&nbsp&nbsp&nbsp<b>inputJson:</b>  Parmeters, identify it's for Export or Import  <br>
-                    &nbsp&nbsp&nbsp&nbsp<b>inputXls:</b>  Input Excel file,  required while importing <br>
-                    &nbsp&nbsp&nbsp&nbsp<b>outputRvt:</b> Output Revit file, required while importing  <br>
-                    &nbsp&nbsp&nbsp&nbsp<b>outputXls:</b> Output Excel file, required while exporting  <br>
-                    
+                    &nbsp&nbsp&nbsp&nbsp<b>outputFiles:</b> Output folder including xml and json files <br>                    
                     <div style="text-align: left;">
                         <label id="configText">
                           <h4>Status</h4>
@@ -251,8 +228,6 @@
                               </div>
                           </div>
                     </div>                
-
-                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="createAppBundleActivity">Create/Update</button>
@@ -292,7 +267,7 @@
             </div>
             And this App Name:
             <div class="input-group">
-              <input type="text" readonly="true" aria-describedby="CopyAppName" id="AppName" class="form-control" value="Excel Export & Import Sample" />
+              <input type="text" readonly="true" aria-describedby="CopyAppName" id="AppName" class="form-control" value="Export MEP System Graphs Sample" />
               <span class="input-group-addon" style="cursor: pointer" data-clipboard-target="#AppName" id="CopyAppName">Copy
                 to clipboard</span>
             </div>

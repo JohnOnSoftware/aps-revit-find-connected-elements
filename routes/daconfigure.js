@@ -137,7 +137,7 @@ router.post('/designautomation/appbundles', async( req, res, next) => {
         try{
             const appBundleSpec = {
                 "Engine" : engineName,
-                "Description" : "Export and Import Revit parameters with Excel AppBundle",
+                "Description" : "Extract graph structure of all MEP systems AppBundle",
             }
             const createAppVersionUrl =  designAutomation.URL.CREATE_APPBUNDLE_VERSION_URL.format(appBundleName);
             newAppVersion = await apiClientCallAsync( 'POST', createAppVersionUrl, req.oauth_token.access_token, appBundleSpec );
@@ -157,7 +157,7 @@ router.post('/designautomation/appbundles', async( req, res, next) => {
             const appBundleSpec = {
                 "Engine" : engineName,
                 "Id" : appBundleName,
-                "Description" : 'Export and Import Revit parameters with Excel AppBundle',
+                "Description" : 'Extract graph structure of all MEP systems AppBundle',
             }
             newAppVersion = await apiClientCallAsync( 'POST', designAutomation.URL.APPBUNDLES_URL, req.oauth_token.access_token, appBundleSpec );
             const aliasSpec = {
@@ -230,20 +230,11 @@ router.post('/designautomation/activities', async( req, res, next) => {
                     description: "input Json parameters",
                     localName: "params.json"
                 },
-                inputXls: {
-                    verb: "get",
-                    description: "input excel file",
-                    localName: "input.xls"
-                },
-                outputRvt: {
+                outputFiles: {
                     verb: "put",
-                    description: "output Rvt file",
-                    localName: "result.rvt"
-                },
-                outputXls: {
-                    verb: "put",
-                    description: "output excel file",
-                    localName: "result.xls"
+                    description: "output files",
+                    localName: "exportedFiles",
+                    zip:true
                 }
             }
         }
