@@ -50,8 +50,6 @@ namespace ExportMEPSystemGraphs
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     public class MEPSystemHandler : IExternalDBApplication
     {
-        //public const string FireRating = "Fire Rating";
-        //public const string Comments = "Comments";
         public const string NodeLabelTag = "text";
 
 
@@ -128,11 +126,11 @@ namespace ExportMEPSystemGraphs
 
             InputParams inputParams = InputParams.Parse("params.json");
 
-            return FindConnectedElements(doc, inputParams);
+            return ExportMEPSystemConnection(doc, inputParams);
         }
 
 
-        public static bool FindConnectedElements(Document doc, InputParams parameters)
+        public static bool ExportMEPSystemConnection(Document doc, InputParams parameters)
         {
             FilteredElementCollector allSystems
               = new FilteredElementCollector(doc)
@@ -179,6 +177,7 @@ namespace ExportMEPSystemGraphs
 
             string outputFolder = Path.Combine(Directory.GetCurrentDirectory(), "exportedFiles");
             Directory.CreateDirectory(outputFolder);
+            Console.WriteLine("The output folder is: " + outputFolder);
 
             int nXmlFiles = 0;
             int nJsonGraphs = 0;
@@ -211,7 +210,6 @@ namespace ExportMEPSystemGraphs
 
                 foreach (MEPSystem system in desirableSystems)
                 {
-                    //Debug.Print(system.Name);
                     Console.WriteLine(system.Name);
 
 
@@ -231,19 +229,12 @@ namespace ExportMEPSystemGraphs
 
                         tree.DumpIntoXML(filename);
 
-                        // Uncomment to preview the
-                        // resulting XML structure
-
+                        // Uncomment to preview the resulting XML structure
                         //Process.Start( fileName );
 
-                        json = parameters.StoreJsonGraphBottomUp
-                          ? tree.DumpToJsonBottomUp()
-                          : tree.DumpToJsonTopDown();
-
-                        //Debug.Assert(2 < json.Length,"expected valid non-empty JSON graph data");
-                        //Debug.Print(json);
-
-                        Console.WriteLine(json);
+                        json = parameters.StoreJsonGraphTopDown
+                          ? tree.DumpToJsonTopDown()
+                          : tree.DumpToJsonBottomUp();
 
                         // Save this system hierarchy JSON in the
                         // appropriate domain specific collector.
@@ -288,6 +279,8 @@ namespace ExportMEPSystemGraphs
                   Path.ChangeExtension(
                     Path.Combine(outputFolder, "jsonData"),
                       "json"));
+                Console.WriteLine("Json file will be saved at: ");
+                Console.WriteLine(Path.ChangeExtension(Path.Combine(outputFolder, "jsonData"),"json"));
 
                 file.WriteLine(sb.ToString());
                 file.Flush();
@@ -312,19 +305,13 @@ namespace ExportMEPSystemGraphs
             string detail = string.Join(", ",
               system_list.ToArray<string>());
 
-            //TaskDialog dlg = new TaskDialog(
-            //  nXmlFiles.ToString() + " Systems");
-
-            //dlg.MainInstruction = msg;
-            //dlg.MainContent = detail;
-
-            //dlg.Show();
+            Console.WriteLine(msg);
+            Console.WriteLine(detail);
 
             string[] json_systems = new string[3];
             int id = doc.Title.GetHashCode();
 
-            for (MepDomain d = MepDomain.Mechanical;
-              d < MepDomain.Count; ++d)
+            for (MepDomain d = MepDomain.Mechanical; d < MepDomain.Count; ++d)
             {
                 // Compare the systems using the label value,
                 // which comes after the first comma.
@@ -343,10 +330,6 @@ namespace ExportMEPSystemGraphs
             json = TreeNode.CreateJsonParentNode(
               doc.Title.GetHashCode().ToString(),
               doc.Title, json_systems);
-
-            //Debug.Print(json);
-            Console.WriteLine(json);
-
 
             if (parameters.StoreEntireJsonGraphOnProjectInfo)
             {
@@ -375,12 +358,8 @@ namespace ExportMEPSystemGraphs
     /// </summary>
     public class InputParams
     {
-        //public bool Export { get; set; } = false;
-        //public bool IncludeFireRating { get; set; } = true;
-        //public bool IncludeComments { get; set; } = true;
-        //public string inputElementId { get; set; } = "xxx";
         public bool StoreUniqueId { get; set; } = true;
-        public bool StoreJsonGraphBottomUp { get; set; } = true;
+        public bool StoreJsonGraphTopDown { get; set; } = true;
         public bool StoreEntireJsonGraphOnProjectInfo { get; set; } = true;
 
         static public InputParams Parse(string jsonPath)
@@ -388,7 +367,7 @@ namespace ExportMEPSystemGraphs
             try
             {
                 if (!File.Exists(jsonPath))
-                    return new InputParams { StoreUniqueId = true, StoreJsonGraphBottomUp = true, StoreEntireJsonGraphOnProjectInfo = true };
+                    return new InputParams { StoreUniqueId = true, StoreJsonGraphTopDown = true, StoreEntireJsonGraphOnProjectInfo = true };
 
                 string jsonContents = File.ReadAllText(jsonPath);
                 return JsonConvert.DeserializeObject<InputParams>(jsonContents);

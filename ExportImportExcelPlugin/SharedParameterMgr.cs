@@ -31,9 +31,9 @@ namespace ExportMEPSystemGraphs
 
       int n = ps.Count;
 
-      Debug.Assert( 1 >= n,
-        "expected maximum one shared parameters "
-        + "named " + _shared_param_name );
+      //Debug.Assert( 1 >= n,
+      //  "expected maximum one shared parameters "
+      //  + "named " + _shared_param_name );
 
       Definition d = ( 0 == n )
         ? null
