@@ -17,17 +17,6 @@
 /////////////////////////////////////////////////////////////////////
 
 $(document).ready(function () {
-
-    $('input:radio[name="exportOrImport"]').click(function () {
-        var checkValue = $('input:radio[name="exportOrImport"]:checked').val();
-        if (checkValue === 'import') {
-            $('#importSharedParameters').show();
-
-        } else {
-            $('#importSharedParameters').hide();
-        }
-    });
-
     $('#startWorkitem').click(startWorkitem);
     $('#cancelBtn').click(async function(){
         if (workingItem != null) {
@@ -39,33 +28,14 @@ $(document).ready(function () {
             }
         }
     });
-
-
-    $('#inputFile').change(function () {
-        _fileInputForm = this;
-        if (_fileInputForm.files.length === 0) 
-            return;
-
-        var file = _fileInputForm.files[0];
-
-        const fileNameParams = file.name.split('.');
-        if( fileNameParams[fileNameParams.length-1].toLowerCase() !== "xls"){
-            alert('please select Excel file and try again');
-            _fileInputForm.value = '';
-            return;
-        }    
-    });
 });
 
 var sourceNode  = null;
 var workingItem = null;
-var inputExcel  = null;
-var exporting   = true;
 var _fileInputForm = null;
 
 
 const SOCKET_TOPIC_WORKITEM = 'Workitem-Notification';
-// const BUCKET_KEY = 'revitiosamplebyzhong';
 
 socketio = io();
 socketio.on(SOCKET_TOPIC_WORKITEM, (data)=>{
@@ -82,16 +52,9 @@ socketio.on(SOCKET_TOPIC_WORKITEM, (data)=>{
   if(status === 'completed' && sourceNode != null){
     console.log('Parameters are handled');
     console.log(data);
-    if( !exporting ){
-        let instance = $('#sourceHubs').jstree(true);
-        parentNode = instance.get_parent(sourceNode);
-        instance.refresh_node(parentNode);    
-    }
     sourceNode = null;
   }
 })
-
-
 
 
 async function startWorkitem() {
@@ -120,42 +83,20 @@ async function startWorkitem() {
         return;
     }
 
-    exporting = $('input[name="exportOrImport"]:checked').val() === 'export';
-    const includeFireRating = $('#includeFireRating')[0].checked;
-    const includeComments = $('#includeComments')[0].checked;
-
-    if( !includeFireRating && !includeComments ){
-        alert('Please at least select one parameter you want to Export|Import');
-        return;
-    }
+    const useUniqueId                    = $('#useUniqueId')[0].checked;
+    const jsonGraphTopDown               = $('#jsonGraphTopDown')[0].checked;
+    const entireJsonGraphOnProjectInfo   = $('#entireJsonGraphOnProjectInfo')[0].checked;
 
     const inputJson = { 
-        Export : exporting,    
-        IncludeFireRating : includeFireRating,
-        IncludeComments   : includeComments
+        StoreUniqueId : useUniqueId,
+        StoreJsonGraphTopDown   : jsonGraphTopDown,
+        StoreEntireJsonGraphOnProjectInfo : entireJsonGraphOnProjectInfo
       };
-
-      
     try {
         let res = null;
-        if(exporting){
-            updateStatus('started');
-            res = await exportExcel( sourceNode.original.storage, inputJson );
-            console.log('The parameters are exported');
-        }
-        else {
-            if (_fileInputForm == null || _fileInputForm.files.length === 0){
-                alert('Please select input Excel first');
-                return;
-            }
-            updateStatus('started');
-            var file = _fileInputForm.files[0];
-            const storageUrl = await uploadExcel(file);
-            console.log( storageUrl );
-            // updateStatus('uploaded');
-            res = await importExcel( sourceNode.original.storage, storageUrl , inputJson,  sourceNode.parent, fileName );
-            console.log('The parameters are imported');
-        }
+        updateStatus('started');
+        res = await exportMEPSystemGraphs(sourceNode.original.storage, inputJson);
+        console.log('The MEP system graphs are exported');
         console.log(res);
         workingItem = res.workItemId;
         updateStatus(res.workItemStatus);
@@ -163,48 +104,15 @@ async function startWorkitem() {
         console.log('Failed to handle the parameters');
         updateStatus('failed');
     }
-    
     return;
 }
 
-async function uploadExcel( file ){
-    let def = $.Deferred();
 
-    if(file === null){
-        def.reject('input file is null');
-        return def.promise();
-    }
-
-    var formData = new FormData();
-    formData.append('fileToUpload', file);
-    // formData.append('bucketKey', BUCKET_KEY);
-
-    $.ajax({
-        url: '/api/aps/datamanagement/v1/oss/object',
-        data: formData,
-        processData: false,
-        contentType: false,
-        type: 'POST',
-        success: function (data) {
-            inputExcel = data;
-            console.log(data);
-            def.resolve(data);
-        },
-        error: function (err) {
-            def.reject(err);
-        }
-
-    });
-    return def.promise();
-}
-
-
-
-async function exportExcel( inputRvt, inputJson){
+async function exportMEPSystemGraphs( inputRvt, inputJson){
     let def = $.Deferred();
   
     jQuery.get({
-        url: '/api/aps/da4revit/v1/revit/' + encodeURIComponent(inputRvt) + '/excel',
+        url: '/api/aps/da4revit/v1/revit/' + encodeURIComponent(inputRvt) + '/mep-system-graphs',
         contentType: 'application/json', // The data type was sent
         dataType: 'json', // The data type will be received
         data: inputJson,
@@ -218,35 +126,6 @@ async function exportExcel( inputRvt, inputJson){
 
     return def.promise();
 }
-
-
-async function importExcel( inputRvt, inputExcel, inputJson, itemId, fileName){
-    let def = $.Deferred();
-
-    jQuery.post({
-        url: '/api/aps/da4revit/v1/revit/' + encodeURIComponent(inputRvt) + '/excel',
-        contentType: 'application/json', // The data type was sent
-        dataType: 'json', // The data type will be received
-        data: JSON.stringify({
-            'InputExcUrl': inputExcel,
-            'ItemUrl': itemId,
-            'FileItemName': fileName,
-            'Data': inputJson
-        }),
-
-        success: function (res) {
-            def.resolve(res);
-        },
-        error: function (err) {
-            def.reject(err);
-        }
-    });
-
-    return def.promise();
-  
-}
-
-
 
 
 function cancelWorkitem( workitemId ){
@@ -271,28 +150,6 @@ function cancelWorkitem( workitemId ){
     return def.promise();
   }
   
-  
-  function getWorkitemStatus( workitemId ){
-    let def = $.Deferred();
-  
-    if(workitemId === null || workitemId === ''){
-      def.reject("parameters are not correct.");  
-      return def.promise();
-    }
-  
-    jQuery.get({
-      url: '/api/aps/da4revit/v1/revit/' + encodeURIComponent(workitemId),
-      dataType: 'json',
-      success: function (res) {
-        def.resolve(res);
-      },
-      error: function (err) {
-        console.log(err)
-        def.reject(err);
-      }
-    });
-    return def.promise();
-  }
 
 
 function updateStatus(status, extraInfo = '') {
@@ -302,14 +159,14 @@ function updateStatus(status, extraInfo = '') {
     switch (status) {
         case "started":
             setProgress(20, 'parametersUpdateProgressBar');
-            statusText.innerHTML = "<h4>Step " + (exporting ? "1/3":"1/4") +  ":  Uploading input parameters</h4>"
+            statusText.innerHTML = "<h4>Step 1/3:  Uploading input parameters</h4>"
             // Disable Create and Cancel button
             upgradeBtnElm.disabled = true;
             cancelBtnElm.disabled = true;
             break;
         case "pending":
             setProgress(40, 'parametersUpdateProgressBar');
-            statusText.innerHTML = "<h4>Step " + (exporting ? "2/3":"2/4") +  ": Running Design Automation</h4>"
+            statusText.innerHTML = "<h4>Step 2/3: Running Design Automation</h4>"
             upgradeBtnElm.disabled = true;
             cancelBtnElm.disabled = false;
             break;
@@ -321,17 +178,14 @@ function updateStatus(status, extraInfo = '') {
             break;
         case "completed":
             setProgress(100, 'parametersUpdateProgressBar');
-            statusText.innerHTML = 
-                exporting ? 
-                    "<h4>Step 3/3: Done, Ready to <a href='" + extraInfo + "'>DOWNLOAD</a></h4>" 
-                   :"<h4>Step 4/4: Done, Check in BIM360</h4>";
+            statusText.innerHTML =  "<h4>Step 3/3: Done, Ready to <a href='" + extraInfo + "'>DOWNLOAD</a></h4>";
             // Enable Create and Cancel button
             upgradeBtnElm.disabled = false;
             cancelBtnElm.disabled = true;
             break;
         case "failed":
             setProgress(0, 'parametersUpdateProgressBar');
-            statusText.innerHTML = "<h4>Failed to process Excel</h4>"
+            statusText.innerHTML = "<h4>Failed to export MEP System Graphs</h4>"
             // Enable Create and Cancel button
             upgradeBtnElm.disabled = false;
             cancelBtnElm.disabled = true;

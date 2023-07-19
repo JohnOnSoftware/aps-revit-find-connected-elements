@@ -1,4 +1,4 @@
-# aps-revit-file-parameters-exchange
+# aps-revit-export-mep-system-graphs
 
 [![Node.js](https://img.shields.io/badge/Node.js-14.0-blue.svg)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm-6.0-blue.svg)](https://www.npmjs.com/)
@@ -10,30 +10,25 @@
 
 ![Windows](https://img.shields.io/badge/Plugins-Windows-lightgrey.svg)
 ![.NET](https://img.shields.io/badge/.NET%20Framework-4.8-blue.svg)
-[![Revit-2023](https://img.shields.io/badge/Revit-2023-lightgrey.svg)](http://autodesk.com/revit)
+[![Revit-2024](https://img.shields.io/badge/Revit-2024-lightgrey.svg)](http://autodesk.com/revit)
 
 
 ![Advanced](https://img.shields.io/badge/Level-Advanced-red.svg)
 [![MIT](https://img.shields.io/badge/License-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 
 # Description
-This sample demonstrates how to update a file-based Revit model stored in BIM 360 Docs, using Design Automation for Revit. The sample does two things:
-1. export Revit parameters (Door Type Parameter “Fire Rating”, and/or Door Instance Parameter “Comments”) to an excel file.
-2. Import Revit parameters (same as above) from a locally stored excel file.
- 
-The custom button in a viewer is provided to make it easier to see the parameter values. You can also see the values in the default property panel as well.
- 
+This sample demonstrates how to travers and export all MEP System Graphs to XML files and Json file.
+The Revit Design Automation plugin is mainly based on the Revit Desktop plugin [TraverseAllSystems](https://github.com/jeremytammik/TraverseAllSystems). For the details, please refer the blog [Traversing and Exporting all MEP System Graphs](https://thebuildingcoder.typepad.com/blog/2016/06/traversing-and-exporting-all-mep-system-graphs.html) by Jeremy. 
+
 
 # Thumbnail
 ![thumbnail](/thumbnail.png)
 
-# Demonstration
-[![https://youtu.be/nOAEzimdq5Q](http://img.youtube.com/vi/nOAEzimdq5Q/0.jpg)](http://www.youtube.com/watch?v=nOAEzimdq5Q "Export|Import Revit parameter values to|from Excel")
 
 # Main Parts of The Work
-1. Create a Revit Plugin to be used within AppBundle of Design Automation for Revit. Please check [PlugIn](./ExportImportExcelPlugin/) 
+1. Create a Revit Plugin to be used within AppBundle of Design Automation for Revit. Please check [PlugIn](./TraverseAllSystems/), build the plugin and generate the ExportMEPSystemGraphs.zip under [bundles](./public/bundles).  
 
-2. Create your App, upload the AppBundle, define your Activity and test the workitem with the Postman collection under [Postman Collection](./PostmanCollection/), or you can refer ([https://youtu.be/1NCeH7acIko](https://youtu.be/1NCeH7acIko)) and simply use the `Configure` button in the Web Application to create the Appbundle & Activity. 
+2. Refer ([https://youtu.be/1NCeH7acIko](https://youtu.be/1NCeH7acIko)) and simply use the `Configure` button in the Web Application to create the Appbundle & Activity. 
 
 3. Create the Web App to call the workitem.
 
@@ -44,7 +39,7 @@ The custom button in a viewer is provided to make it easier to see the parameter
 1. **APS Account**: Learn how to create a APS Account, activate subscription and create an app at [this tutorial](http://aps.autodesk.com/tutorials). 
 2. **Visual Code**: Visual Code (Windows or MacOS).
 3. **ngrok**: Routing tool, [download here](https://ngrok.com/)
-4. **Revit 2022**: required to compile changes into the plugin
+4. **Revit 2024**: required to compile changes into the plugin
 5. **JavaScript ES6** syntax for server-side.
 6. **JavaScript** basic knowledge with **jQuery**
 
@@ -57,7 +52,7 @@ Install [NodeJS](https://nodejs.org), version 8 or newer.
 
 Clone this project or download it (this `nodejs` branch only). It's recommended to install [GitHub desktop](https://desktop.github.com/). To clone it via command line, use the following (**Terminal** on MacOSX/Linux, **Git Shell** on Windows):
 
-    git clone https://github.com/autodesk-platform-services/aps-revit-file-parameters-exchange
+    git clone https://github.com/JohnOnSoftware/aps-revit-find-connected-elements
 
 Install the required packages using `npm install`.
 
@@ -109,14 +104,14 @@ environment variable examples:
 
 The following are optional:
 - DESIGN_AUTOMATION_NICKNAME: Only necessary if there is a nickname, APS client id by default.
-- DESIGN_AUTOMATION_ACTIVITY_NAME: Only necessary if the activity name is customized, ExportImportExcelActivity by default.
+- DESIGN_AUTOMATION_ACTIVITY_NAME: Only necessary if the activity name is customized, ExportMEPSystemGraphsActivity by default.
 
 ### Using the app
 
-Open the browser: [http://localhost:3000](http://localhost:3000), it provides the abilities to export & import parameter with Excel: 
+Open the browser: [http://localhost:3000](http://localhost:3000), it provides the abilities to export all MEP system graphs to xml files and Json file: 
 
-1. Select Revit file version in BIM360 Hub to view the Model, Select parameters which you want to export|import, choose either export or import and click 'Execute'.
-2. Select the Door type or instance in Model Viewer, and open the customized property panel to see the result.
+1. Select Revit file version in ACC Hub to view the Model, check the settings you want to use, click 'Export'.
+2. Click 'DOWNLOAD' after the job is done, you will get XML files and Json file for all your MEP System Graphs within this model.
 
 `Note`: When you deploy the app, you have to open the `Configure` button to create the AppBundle & Activity before running the Export|Import feature, please check the video for the steps at [https://youtu.be/1NCeH7acIko](https://youtu.be/1NCeH7acIko). You can also delete the existing AppBundle & Activity and re-create with different Design Automation Revit engine version.
 
@@ -125,7 +120,6 @@ Open the browser: [http://localhost:3000](http://localhost:3000), it provides th
 
 The [Autodesk APS](https://www.npmjs.com/package/forge-apis) packages is included by default. Some other non-Autodesk packaged are used, including [socket.io](https://www.npmjs.com/package/socket.io), [express](https://www.npmjs.com/package/express).
 
-Within the Revit Plugin, [LibXL](http://www.libxl.com) is used to read/write the date of Excel. 
 
 ## Further Reading
 
@@ -145,12 +139,10 @@ After installing Github desktop for Windows, on the Git Shell, if you see a ***e
     git config --global http.sslverify "false"
 
 ## Limitation
-- Before using the sample to call the workitem, you need to setup your Appbundle & Activity of Design Automation, you can follow my Postman script to understand the whole process, or you can simply use the `Configure` button in the Web Application to create the Appbundle & Activity([https://youtu.be/1NCeH7acIko](https://youtu.be/1NCeH7acIko)). 
-- Currently Revit Cloud Worksharing is not supported by the Design Automation.  The scenario that this sample demonstrates is applicable only with a file-based Revit model. 
-- The free version of [LibXL](http://www.libxl.com) I used will write a banner in the first row of each spreadsheet and it will be able to read only 300 cells (first row is unavailable). If you want to remove banner and reading restriction, you may contact them for a license.
-- It takes time for BIM360 to automatically translate the new uploaded Revit file version, please wait for a while to see the viewable and properties.
+- Before using the sample to call the workitem, you need to setup your Appbundle & Activity of Design Automation, you can simply use the `Configure` button in the Web Application to create the Appbundle & Activity([https://youtu.be/1NCeH7acIko](https://youtu.be/1NCeH7acIko)). 
+- Revit Cloud Worksharing is not supported by the Design Automation.  The scenario that this sample demonstrates is applicable only with a file-based Revit model. 
 - Client JavaScript requires modern browser.
-- Currently, the sample support Design Automation engine 2019 & 2020, you can use `Configure` button to delete|create different versions of Design Automation Revit engine.
+- Currently, the sample support Design Automation engine 2024, you can use `Configure` button to delete|create different versions of Design Automation Revit engine.
 
 ## License
 
@@ -159,4 +151,3 @@ This sample is licensed under the terms of the [MIT License](http://opensource.o
 ## Written by
 
 Zhong Wu [@johnonsoftware](https://twitter.com/johnonsoftware), [Autodesk Platform Service](http://aps.autodesk.com)
-Eason Kang [@yiskang](https://twitter.com/yiskang), [Autodesk Platform Service](http://aps.autodesk.com)

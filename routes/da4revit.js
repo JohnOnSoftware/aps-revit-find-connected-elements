@@ -20,8 +20,6 @@ const express = require('express');
 const { credentials }= require('../config');
 
 const {
-    ItemsApi,
-    VersionsApi,
     BucketsApi,
     ObjectsApi,
 } = require('forge-apis');
@@ -31,16 +29,12 @@ const { OAuth } = require('./common/oauthImp');
 const { 
     getWorkitemStatus, 
     cancelWorkitem,
-    exportExcel,
-    importExcel,
-    getLatestVersionInfo, 
-    getNewCreatedStorageInfo, 
-    createBodyOfPostVersion,
+    exportMEPSystemGraphs,
     workitemList 
 } = require('./common/da4revitImp')
 
 const SOCKET_TOPIC_WORKITEM = 'Workitem-Notification';
-const FILE_OUTPUT_NAME = 'RevitParams.xls';
+const FILE_OUTPUT_NAME = 'exportedFiles.zip';
 
 let router = express.Router();
 
@@ -63,9 +57,9 @@ router.use(async (req, res, next) => {
 
 
 ///////////////////////////////////////////////////////////////////////
-/// Export parameters to Excel from Revit
+/// Export Revit MEP System Graphs
 ///////////////////////////////////////////////////////////////////////
-router.get('/da4revit/v1/revit/:version_storage/excel', async (req, res, next) => {
+router.get('/da4revit/v1/revit/:version_storage/mep-system-graphs', async (req, res, next) => {
     const inputJson = req.query;
     const inputRvtUrl = (req.params.version_storage);
 
@@ -104,10 +98,10 @@ router.get('/da4revit/v1/revit/:version_storage/excel', async (req, res, next) =
             ObjectKey: objectKey
         };
 
-        let result = await exportExcel(inputRvtUrl, inputJson, objectId, objectInfo, oauth_token, req.oauth_token,);
+        let result = await exportMEPSystemGraphs(inputRvtUrl, inputJson, objectId, objectInfo, oauth_token, req.oauth_token,);
         if (result === null || result.statusCode !== 200) {
-            console.log('failed to export the excel file');
-            res.status(500).end('failed to export the excel file');
+            console.log('failed to export the MEP system graphs');
+            res.status(500).end('failed to export the MEP system graphs');
             return;
         }
         console.log('Submitted the workitem: ' + result.body.id);
@@ -118,7 +112,7 @@ router.get('/da4revit/v1/revit/:version_storage/excel', async (req, res, next) =
         };
         res.status(200).end(JSON.stringify(exportInfo));
     } catch (err) {
-        console.log('get exception while exporting parameters to Excel')
+        console.log('get exception while exporting MEP system graphs.')
         let workitemStatus = {
             'Status': "Failed"
         };
@@ -127,101 +121,6 @@ router.get('/da4revit/v1/revit/:version_storage/excel', async (req, res, next) =
     }
 });
 
-
-
-
-///////////////////////////////////////////////////////////////////////
-/// Import parameters from Excel to Revit
-///
-///////////////////////////////////////////////////////////////////////
-router.post('/da4revit/v1/revit/:version_storage/excel', async (req, res, next) => {
-    const inputRvtUrl = req.params.version_storage; // input Url of Revit file
-    const inputExcUrl  = req.body.InputExcUrl; // input Url of Excel file
-    const inputJson  = req.body.Data;    // input parameters for DA
-    const fileItemId   = req.body.ItemUrl; // item url used to get info to upload new version of BIM360 Revit file.
-    const fileItemName = req.body.FileItemName; // file name
-
-    if ( inputJson === '' || inputRvtUrl === '' || inputExcUrl === '' || fileItemName === '' || fileItemId === '') {
-        res.status(400).end('Missing input data');
-        return;
-    }
-    
-    const params = fileItemId.split('/');
-    if( params.length < 3){
-        res.status(400).end('input ItemUrl is not in correct format');
-    }
-
-    const resourceName = params[params.length - 2];
-    if (resourceName !== 'items') {
-        res.status(400).end('input ItemUrl is not an item');
-        return;
-    }
-
-    const resourceId = params[params.length - 1];
-    const projectId = params[params.length - 3];
-
-    try {
-        const items = new ItemsApi();
-        const folder = await items.getItemParentFolder(projectId, resourceId, req.oauth_client, req.oauth_token);
-        if(folder === null || folder.statusCode !== 200){
-            console.log('failed to get the parent folder.');
-            res.status(500).end('failed to get the parent folder');
-            return;
-        }
-
-        // create storage for the new uploaded Revit vesion
-        const storageInfo = await getNewCreatedStorageInfo(projectId, folder.body.data.id, fileItemName, req.oauth_client, req.oauth_token);
-        if (storageInfo === null ) {
-            console.log('failed to create the storage');
-            res.status(500).end('failed to create the storage');
-            return;
-        }
-
-        // get the storage of the input item version
-        const versionInfo = await getLatestVersionInfo(projectId, resourceId, req.oauth_client, req.oauth_token);
-        if (versionInfo === null) {
-            console.log('failed to get lastest version of the file');
-            res.status(500).end('failed to get lastest version of the file');
-            return;
-        }
-
-        const createVersionBody = createBodyOfPostVersion(resourceId,fileItemName, storageInfo.StorageId, versionInfo.versionType);
-        if (createVersionBody === null ) {
-            console.log('failed to create body of Post Version');
-            res.status(500).end('failed to create body of Post Version');
-            return;
-        }
-
-        ////////////////////////////////////////////////////////////////////////////////
-        // use 2 legged token for design automation
-        const oauth = new OAuth(req.session);
-        const oauth_client = oauth.get2LeggedClient();;
-        const oauth_token = await oauth_client.authenticate();
-
-        // call to import Excel file to update parameters in Revit
-        let result = await importExcel(inputRvtUrl, inputExcUrl, inputJson, storageInfo.StorageId, projectId, createVersionBody, req.oauth_token, oauth_token);
-        if (result === null || result.statusCode !== 200) {
-            console.log('failed to import parameters to the revit file');
-            res.status(500).end('failed to import parameters to the revit file');
-            return;
-        }
-        console.log('Submitted the workitem: '+ result.body.id);
-        const exportInfo = {
-            "workItemId": result.body.id,
-            "workItemStatus": result.body.status,
-            "ExtraInfo": null
-        };
-        res.status(200).end(JSON.stringify(exportInfo));
-
-    } catch (err) {
-        console.log('get exception while importing parameters from Excel')
-        let workitemStatus = {
-            'Status': "Failed"
-        };
-        global.MyApp.SocketIo.emit(SOCKET_TOPIC_WORKITEM, workitemStatus);
-        res.status(500).end(JSON.stringify(err));
-    }
-});
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -299,33 +198,14 @@ router.post('/callback/designautomation', async (req, res, next) => {
             return;
         }
         let index = workitemList.indexOf(workitem);
-
-        if (workitem.createVersionData != null) {
-            workitemStatus.Status = 'Success';
-            global.MyApp.SocketIo.emit(SOCKET_TOPIC_WORKITEM, workitemStatus);
-            console.log("Starting to post handle the DA workitem:  " + workitem.workitemId);
-            try {
-                const versions = new VersionsApi();
-                version = await versions.postVersion(workitem.projectId, workitem.createVersionData, req.oauth_client, workitem.access_token_3Legged);
-                if (version === null || version.statusCode !== 201) {
-                    console.log('Falied to create a new version of the file');
-                    workitemStatus.Status = 'Failed'
-                } else {
-                    console.log('Successfully created a new version of the file');
-                    workitemStatus.Status = 'Completed';
-                }
-            } catch (err) {
-                console.log(err);
-                workitemStatus.Status = 'Failed';
-            }
-        } else if( workitem.objectInfo ) {
+        if( workitem.objectInfo ) {
             try{
                 const objectApi = new ObjectsApi();
                 const downloadInfo = await objectApi.getS3DownloadURL( workitem.objectInfo.BucketKey, workitem.objectInfo.ObjectKey, null, req.oauth_client, workitem.access_token_2Legged );
                 workitemStatus.Status = 'Completed';
                 workitemStatus.ExtraInfo = downloadInfo.body.url;
             }catch(err){
-                console.log("Failed to upload the output excel due to "+ err);
+                console.log("Failed to upload the output files due to "+ err);
                 workitemStatus.Status = 'Failed';
             }
         }else{
@@ -342,7 +222,6 @@ router.post('/callback/designautomation', async (req, res, next) => {
     }
     return;
 })
-
 
 
 module.exports = router;
