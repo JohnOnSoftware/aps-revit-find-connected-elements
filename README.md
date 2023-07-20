@@ -1,4 +1,4 @@
-# aps-revit-export-mep-system-graphs
+# aps-revit-find-connected-elements
 
 [![Node.js](https://img.shields.io/badge/Node.js-14.0-blue.svg)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm-6.0-blue.svg)](https://www.npmjs.com/)

@@ -1,7 +1,7 @@
 {
-    "name": "aps-revit-file-parameters-exchange",
-    "description": "A sample showing how to export & import Revit parameters to Excel by Design Automation Revit service",
-    "repository": "https://github.com/autodesk-platform-services/aps-revit-file-parameters-exchange",
+    "name": "aps-revit-find-connected-elements",
+    "description": "A sample showing how to export all MEP system graphs by Design Automation Revit service",
+    "repository": "https://github.com/autodesk-platform-services/aps-revit-find-connected-elements",
     "logo": "https://avatars0.githubusercontent.com/u/8017462?v=3&s=200",
     "keywords": [
         "autodesk",
